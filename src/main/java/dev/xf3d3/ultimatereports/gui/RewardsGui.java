@@ -23,7 +23,7 @@ public class RewardsGui extends BaseGui {
     protected void open() {
         plugin.getUsersManager().getPlayer(player.getUniqueId()).thenAccept(onlinePlayer -> {
 
-            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getReward().getTitle()), plugin.getGuiConfig().getReward().getSetup());
+            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getReward().getTitle(), player), plugin.getGuiConfig().getReward().getSetup());
             addCommonElements(gui, onlinePlayer);
 
             // TRUE

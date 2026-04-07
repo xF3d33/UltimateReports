@@ -27,7 +27,7 @@ public class ProcessGui extends BaseGui {
     protected void open() {
         plugin.getUsersManager().getPlayer(player.getUniqueId()).thenAccept(onlinePlayer -> {
 
-            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getProcess().getTitle().replace("%ID%", String.valueOf(report.getId()))), plugin.getGuiConfig().getProcess().getSetup());
+            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getProcess().getTitle().replace("%ID%", String.valueOf(report.getId())), player), plugin.getGuiConfig().getProcess().getSetup());
             addCommonElements(gui, onlinePlayer);
 
             // TRUE
@@ -61,11 +61,12 @@ public class ProcessGui extends BaseGui {
                                     if (onlineReporter != null) onlineReporter.sendMessage(MineDown.parse(plugin.getSettings().getGeneral().getPrefix() + plugin.getMessages().getReport().getRewards()));
                                 }
 
-                                click.getGui().close();
+                                close(click.getGui());
                                 return true;
                             },
                             serialize(
-                                    plugin.getGuiConfig().getProcess().getMarkAsTrue()
+                                    plugin.getGuiConfig().getProcess().getMarkAsTrue(),
+                                    player
                             )
                     )
             );
@@ -89,12 +90,13 @@ public class ProcessGui extends BaseGui {
                                 }
 
                                 plugin.getReportsManager().deleteReport(player, report);
-                                click.getGui().close();
+                                close(click.getGui());
 
                                 return true;
                             },
                             serialize(
-                                    plugin.getGuiConfig().getProcess().getMarkAsFalse()
+                                    plugin.getGuiConfig().getProcess().getMarkAsFalse(),
+                                    player
                             )
                     )
             );
@@ -102,5 +104,13 @@ public class ProcessGui extends BaseGui {
             gui.show(player);
         });
 
+    }
+
+    private void close(InventoryGui gui) {
+        gui.close();
+
+        if (plugin.getSettings().getGeneral().isReopenGui()) {
+            new ReportsList(plugin, player, plugin.getReportsManager().getOpenReports(), Report.Status.OPEN);
+        }
     }
 }

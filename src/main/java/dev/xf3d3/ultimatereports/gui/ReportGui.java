@@ -54,7 +54,7 @@ public class ReportGui extends BaseGui {
 
 
 
-            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getReport().getTitle().replace("%ID%", String.valueOf(report.getId()))), plugin.getGuiConfig().getReport().getSetup());
+            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getReport().getTitle().replace("%ID%", String.valueOf(report.getId())), player), plugin.getGuiConfig().getReport().getSetup());
             addCommonElements(gui, onlinePlayer);
 
 
@@ -83,7 +83,8 @@ public class ReportGui extends BaseGui {
                                             replaceStatus(
                                                     plugin.getGuiConfig().getReport().getSetStatus()
                                                             .replace("%STATUS%", "%" + Report.Status.WAITING.name() + "%")
-                                            )
+                                            ),
+                                            player
 
                                     )
                             ))
@@ -114,7 +115,8 @@ public class ReportGui extends BaseGui {
                                     replaceStatus(
                                             plugin.getGuiConfig().getReport().getSetStatus()
                                                     .replace("%STATUS%", "%" + Report.Status.IN_PROGRESS.name() + "%")
-                                    )
+                                    ),
+                                    player
 
                             )
                     )
@@ -145,7 +147,8 @@ public class ReportGui extends BaseGui {
                                     replaceStatus(
                                             plugin.getGuiConfig().getReport().getSetStatus()
                                                     .replace("%STATUS%", "%" + Report.Status.DONE.name() + "%")
-                                    )
+                                    ),
+                                    player
 
                             )
                     )
@@ -172,7 +175,7 @@ public class ReportGui extends BaseGui {
                                 click.getGui().draw();
                                 return true;
                             },
-                            serialize(plugin.getGuiConfig().getReport().getArchive())
+                            serialize(plugin.getGuiConfig().getReport().getArchive(), player)
                     )
             ));
 
@@ -194,9 +197,13 @@ public class ReportGui extends BaseGui {
                                 click.getWhoClicked().sendMessage(MineDown.parse(plugin.getSettings().getGeneral().getPrefix() + plugin.getMessages().getReport().getReportDeleted()));
 
                                 click.getGui().close();
+
+                                if (plugin.getSettings().getGeneral().isReopenGui()) {
+                                    new ReportsList(plugin, player, plugin.getReportsManager().getOpenReports(), Report.Status.OPEN);
+                                }
                                 return true;
                             },
-                            serialize(plugin.getGuiConfig().getReport().getDelete())
+                            serialize(plugin.getGuiConfig().getReport().getDelete(), player)
                     ))
             );
 
@@ -221,7 +228,7 @@ public class ReportGui extends BaseGui {
 
                                 return true;
                             },
-                            serialize(plugin.getGuiConfig().getReport().getPunishReporter())
+                            serialize(plugin.getGuiConfig().getReport().getPunishReporter(), player)
                     )
             ));
 
@@ -230,7 +237,12 @@ public class ReportGui extends BaseGui {
             OfflinePlayer reportedOfflinePlayer = Bukkit.getOfflinePlayer(report.getReported());
             gui.addElement(
                     new StaticGuiElement('l',
-                            createPlayerSkull(reporterOfflinePlayer),
+                            createPlayerSkullWithLore(reporterOfflinePlayer, serialize(
+                                    plugin.getGuiConfig().getReport().getPlayerStats().stream()
+                                            .map(s -> s.replace("%SENT%", String.valueOf(reporterPlayer.getPreferences().getReports())))
+                                            .map(s -> s.replace("%RECEIVED%", String.valueOf(reporterPlayer.getPreferences().getReported())))
+                                            .collect(Collectors.toList()), player
+                            )),
                             1,
                             click -> {
 
@@ -260,19 +272,18 @@ public class ReportGui extends BaseGui {
                                 }
 
                                 return true;
-                            },
-                            serialize(
-                                    plugin.getGuiConfig().getReport().getPlayerStats().stream()
-                                            .map(s -> s.replace("%SENT%", String.valueOf(reporterPlayer.getPreferences().getReports())))
-                                            .map(s -> s.replace("%RECEIVED%", String.valueOf(reporterPlayer.getPreferences().getReported())))
-                                            .collect(Collectors.toList())
-                            )
+                            }
                     )
             );
 
             gui.addElement(
                     new StaticGuiElement('n',
-                            createPlayerSkull(reportedOfflinePlayer),
+                            createPlayerSkullWithLore(reportedOfflinePlayer, serialize(
+                                    plugin.getGuiConfig().getReport().getPlayerStats().stream()
+                                            .map(s -> s.replace("%SENT%", String.valueOf(reportedPlayer.getPreferences().getReports())))
+                                            .map(s -> s.replace("%RECEIVED%", String.valueOf(reportedPlayer.getPreferences().getReported())))
+                                            .collect(Collectors.toList()), player
+                            )),
                             1,
                             click -> {
 
@@ -307,13 +318,7 @@ public class ReportGui extends BaseGui {
                                 }
 
                                 return true;
-                            },
-                            serialize(
-                                    plugin.getGuiConfig().getReport().getPlayerStats().stream()
-                                            .map(s -> s.replace("%SENT%", String.valueOf(reportedPlayer.getPreferences().getReports())))
-                                            .map(s -> s.replace("%RECEIVED%", String.valueOf(reportedPlayer.getPreferences().getReported())))
-                                            .collect(Collectors.toList())
-                            )
+                            }
                     )
             );
 
@@ -330,7 +335,7 @@ public class ReportGui extends BaseGui {
                             serialize(
                                     plugin.getGuiConfig().getReport().getComments().stream()
                                             .map(s -> s.replace("%COMMENTS_NUMBER%", String.valueOf(report.getComments().size())))
-                                            .collect(Collectors.toList())
+                                            .collect(Collectors.toList()), player
                             )
                     )
             );
@@ -357,7 +362,8 @@ public class ReportGui extends BaseGui {
                                 return true;
                             },
                             serialize(
-                                    plugin.getGuiConfig().getReport().getProcessReport()
+                                    plugin.getGuiConfig().getReport().getProcessReport(),
+                                    player
                             )
                     )
             );
@@ -367,9 +373,11 @@ public class ReportGui extends BaseGui {
                             new  ItemStack(Material.PAPER),
                             1,
                             click -> true,
-                            getReportInfo(report)
+                            getReportInfo(report, player)
                     )
             );
+
+            gui.setCloseAction(close -> true);
 
 
             gui.show(player);

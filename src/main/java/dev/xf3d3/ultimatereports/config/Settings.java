@@ -172,6 +172,9 @@ public class Settings {
         @Comment("Should the plugin send notifications to the Reporter when the report is updated?")
         private boolean sendNotification = true;
 
+        @Comment("Should the plugin reopen the Reports List GUI after you process a report?")
+        private boolean reopenGui = true;
+
     }
 
     @Comment({"Discord Settings.",

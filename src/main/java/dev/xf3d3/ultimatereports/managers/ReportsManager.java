@@ -66,10 +66,11 @@ public class ReportsManager {
     }
 
     public void deleteReport(@Nullable Player actor, @NotNull Report report) {
+        removeReport(report);
+
         plugin.runAsync(task -> {
 
             plugin.getDatabase().deleteReport(report.getId());
-            removeReport(report);
 
             // SEND TO OTHER SERVERS
             plugin.getMessageBroker().ifPresent(broker -> Message.builder()
@@ -113,6 +114,14 @@ public class ReportsManager {
 
             Report report = plugin.getDatabase().createReport(reporter, reported, reason, reporterPosition, reportedPosition);
             reports.add(report);
+
+            plugin.getMessages().getReport().getReportSuccessful()
+                    .forEach(message -> reporter.sendMessage(MineDown.parse(message
+                            .replace("%PLAYER%", Objects.requireNonNullElse(reported.getName(), "Player not found"))
+                            .replace("%REASON%", reason)
+                            .replace("%ID%", String.valueOf(report.getId()))
+                            .replace("%PLUGIN_PREFIX%", plugin.getSettings().getGeneral().getPrefix())
+            )));
 
             // SEND TO OTHER SERVERS
             plugin.getMessageBroker().ifPresent(broker -> Message.builder()

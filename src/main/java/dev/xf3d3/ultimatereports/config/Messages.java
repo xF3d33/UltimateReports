@@ -89,7 +89,10 @@ public class Messages {
 
         private String noReasonGiven = "[Please provide a reason for your report.](dark_aqua)";
 
-        private String reportSuccessful = "[You successfully reported](dark_aqua) [%PLAYER%](gold) [for:](dark_aqua) [%REASON%](gold)";
+        private List<String> reportSuccessful = List.of(
+                "%PLUGIN_PREFIX% [You successfully reported](dark_aqua) [%PLAYER%](gold) [for:](dark_aqua) [%REASON%](gold)",
+                "[If you want to add extra information in your report](dark_aqua) [[click here]](blue bold suggest_command=/reports comment %ID% <message> hover=[Click to add a comment](dark_aqua))"
+        );
 
         private String reportDeleted = "[The report has been successfully deleted](dark_aqua)";
 

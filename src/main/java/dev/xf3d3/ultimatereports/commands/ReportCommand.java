@@ -67,10 +67,7 @@ public class ReportCommand extends BaseCommand {
                 return;
             }
 
-            player.sendMessage(MineDown.parse(plugin.getSettings().getGeneral().getPrefix() + plugin.getMessages().getReport().getReportSuccessful()
-                    .replace("%PLAYER%", Objects.requireNonNullElse(reported.getName(), "Player not found"))
-                    .replace("%REASON%", reason)
-            ));
+
             plugin.getReportsManager().createReport(player, reported, reason, reportedPlayer);
         });
     }

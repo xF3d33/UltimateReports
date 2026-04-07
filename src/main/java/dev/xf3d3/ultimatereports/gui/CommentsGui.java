@@ -31,13 +31,15 @@ public class CommentsGui extends BaseGui {
     protected void open() {
         plugin.getUsersManager().getPlayer(player.getUniqueId()).thenAccept(onlinePlayer -> {
 
-            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getComments().getTitle().replace("%ID%", String.valueOf(report.getId()))), plugin.getGuiConfig().getComments().getSetup());
+            final InventoryGui gui = new InventoryGui(plugin, player, serialize(plugin.getGuiConfig().getComments().getTitle().replace("%ID%", String.valueOf(report.getId())), player), plugin.getGuiConfig().getComments().getSetup());
             addCommonElements(gui, onlinePlayer);
 
             // Comments
             this.group = new GuiElementGroup('x');
             addComments();
             gui.addElement(group);
+
+            gui.setCloseAction(close -> true);
 
             gui.show(player);
         });
@@ -51,7 +53,15 @@ public class CommentsGui extends BaseGui {
             OfflinePlayer author = Bukkit.getOfflinePlayer(comment.getAuthor());
 
             group.addElement(new DynamicGuiElement('o', (viewer) -> new StaticGuiElement('o',
-                    createPlayerSkull(author),
+                    createPlayerSkullWithLore(author, serialize(
+                            plugin.getGuiConfig().getComments().getComment().stream()
+                                    .map(s -> s.replace("%AUTHOR%", comment.getAuthorName()))
+                                    .map(s -> s.replace("%MESSAGE%", comment.getMessage()))
+                                    .map(s -> s.replace("%DATE%", plugin.getUtils().formatDate(comment.getTimestamp())))
+                                    .map(s -> s.replace("%STATUS%", "%" + comment.getStatus().name() + "%"))
+                                    .map(this::replaceStatus)
+                                    .collect(Collectors.toList()), player
+                    )),
                     click -> {
                         if (!click.getWhoClicked().hasPermission("ultimatereports.reports.manage")) {
 
@@ -88,16 +98,7 @@ public class CommentsGui extends BaseGui {
                         }
 
                         return true;
-                    },
-                    serialize(
-                            plugin.getGuiConfig().getComments().getComment().stream()
-                                    .map(s -> s.replace("%AUTHOR%", comment.getAuthorName()))
-                                    .map(s -> s.replace("%MESSAGE%", comment.getMessage()))
-                                    .map(s -> s.replace("%DATE%", plugin.getUtils().formatDate(comment.getTimestamp())))
-                                    .map(s -> s.replace("%STATUS%", "%" + comment.getStatus().name() + "%"))
-                                    .map(this::replaceStatus)
-                                    .collect(Collectors.toList())
-                    )
+                    }
             )));
         });
     }

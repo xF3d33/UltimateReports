@@ -29,11 +29,13 @@ import dev.xf3d3.ultimatereports.utils.Utils;
 import dev.xf3d3.ultimatereports.utils.gson.GsonUtils;
 import lombok.Getter;
 import lombok.Setter;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.william278.desertwell.util.ThrowingConsumer;
 import net.william278.desertwell.util.Version;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -43,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -312,6 +316,42 @@ public final class UltimateReports extends JavaPlugin implements TaskRunner, Gso
             getServer().getPluginManager().addPermission(perm);
         }
     }
+
+    private boolean isPlaceholderAPIEnabled() {
+        try {
+            Class.forName("me.clip.placeholderapi.PlaceholderAPIPlugin");
+
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public String replacePlaceholders(OfflinePlayer player, String text) {
+        if (text == null) return "";
+
+        if (isPlaceholderAPIEnabled()) {
+
+            return PlaceholderAPI.setPlaceholders(player, text);
+        } else {
+
+            return text;
+        }
+    }
+
+    public List<String> replacePlaceholders(OfflinePlayer player, List<String> text) {
+        if (text == null) return Collections.emptyList();
+
+        if (isPlaceholderAPIEnabled()) {
+
+            return text.stream().map(line -> PlaceholderAPI.setPlaceholders(player, line)).collect(Collectors.toList());
+        } else {
+
+            return text;
+        }
+    }
+
+
 
     @NotNull
     public Version getPluginVersion() {

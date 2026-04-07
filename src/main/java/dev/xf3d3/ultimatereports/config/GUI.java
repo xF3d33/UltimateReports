@@ -95,7 +95,7 @@ public class GUI {
             };
 
             @Comment("This title is shown to staffers")
-            private String titleAllReports = "[Reports List](dark_gray)";
+            private String titleAllReports = "[Reports List -](dark_gray) [%REPORT_STATUS% Reports](gold bold)";
 
             @Comment("This title is shown to players")
             private String titleYourReports = "[Your Reports](dark_gray)";

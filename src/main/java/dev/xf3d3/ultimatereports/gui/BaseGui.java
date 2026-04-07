@@ -42,13 +42,13 @@ public abstract class BaseGui {
         gui.addElement(new StaticGuiElement('f', new ItemStack(plugin.getGuiConfig().getShared().getCloseItem()), 1, click -> {
             click.getGui().close();
             return true;
-        }, serialize(plugin.getGuiConfig().getShared().getClose())));
+        }, serialize(plugin.getGuiConfig().getShared().getClose(), player)));
 
         // Navigation (d, e, h, i)
-        gui.addElement(new GuiPageElement('d', new ItemStack(plugin.getGuiConfig().getShared().getFirstPageItem()), GuiPageElement.PageAction.FIRST, serialize(plugin.getGuiConfig().getShared().getFirstPage())));
-        gui.addElement(new GuiPageElement('e', new ItemStack(plugin.getGuiConfig().getShared().getPrevPageItem()), GuiPageElement.PageAction.PREVIOUS, serialize(plugin.getGuiConfig().getShared().getPrevPage())));
-        gui.addElement(new GuiPageElement('h', new ItemStack(plugin.getGuiConfig().getShared().getNextPageItem()), GuiPageElement.PageAction.NEXT, serialize(plugin.getGuiConfig().getShared().getNextPage())));
-        gui.addElement(new GuiPageElement('i', new ItemStack(plugin.getGuiConfig().getShared().getLastPageItem()), GuiPageElement.PageAction.LAST, serialize(plugin.getGuiConfig().getShared().getLastPage())));
+        gui.addElement(new GuiPageElement('d', new ItemStack(plugin.getGuiConfig().getShared().getFirstPageItem()), GuiPageElement.PageAction.FIRST, serialize(plugin.getGuiConfig().getShared().getFirstPage(), player)));
+        gui.addElement(new GuiPageElement('e', new ItemStack(plugin.getGuiConfig().getShared().getPrevPageItem()), GuiPageElement.PageAction.PREVIOUS, serialize(plugin.getGuiConfig().getShared().getPrevPage(), player)));
+        gui.addElement(new GuiPageElement('h', new ItemStack(plugin.getGuiConfig().getShared().getNextPageItem()), GuiPageElement.PageAction.NEXT, serialize(plugin.getGuiConfig().getShared().getNextPage(), player)));
+        gui.addElement(new GuiPageElement('i', new ItemStack(plugin.getGuiConfig().getShared().getLastPageItem()), GuiPageElement.PageAction.LAST, serialize(plugin.getGuiConfig().getShared().getLastPage(), player)));
 
         // Notifications status (a)
         GuiStateElement notificationsStatus = new GuiStateElement('a',
@@ -61,7 +61,7 @@ public abstract class BaseGui {
                         },
                         "notificationsEnabled",
                         new ItemStack(plugin.getGuiConfig().getShared().getNotificationsItem()),
-                        serialize(plugin.getGuiConfig().getShared().getDisableNotification())
+                        serialize(plugin.getGuiConfig().getShared().getDisableNotification(), player)
                 ),
                 new GuiStateElement.State(
                         change -> {
@@ -72,7 +72,7 @@ public abstract class BaseGui {
                         },
                         "notificationsDisabled",
                         new ItemStack(plugin.getGuiConfig().getShared().getNotificationsItem()),
-                        serialize(plugin.getGuiConfig().getShared().getEnableNotification())
+                        serialize(plugin.getGuiConfig().getShared().getEnableNotification(), player)
                 )
         );
 
@@ -84,17 +84,17 @@ public abstract class BaseGui {
         gui.addElement(notificationsStatus);
     }
 
-    protected String serialize(String text) {
-        return LegacyComponentSerializer.legacySection().serialize(MineDown.parse(text));
+    protected String serialize(String text, OfflinePlayer offlinePlayer) {
+        return LegacyComponentSerializer.legacySection().serialize(MineDown.parse(plugin.replacePlaceholders(offlinePlayer, text)));
     }
 
-    protected String[] serialize(List<String> mineDownList) {
+    protected String[] serialize(List<String> mineDownList, OfflinePlayer offlinePlayer) {
         return mineDownList.stream()
-                .map(this::serialize)
+                .map(s -> serialize(s, offlinePlayer))
                 .toArray(String[]::new);
     }
 
-    protected String[] getReportInfo(@NotNull Report report) {
+    protected String[] getReportInfo(@NotNull Report report, OfflinePlayer offlinePlayer) {
         return plugin.getGuiConfig().getShared().getReportInfo().stream()
                 .map(s -> s.replace("%STATUS%", "%" + report.getStatus().name() + "%"))
                 .map(s -> s.replace("%ID%", String.valueOf(report.getId())))
@@ -103,7 +103,7 @@ public abstract class BaseGui {
                 .map(s -> s.replace("%REPORTED%", report.getReportedName()))
                 .map(s -> s.replace("%REASON%", report.getReason()))
                 .map(this::replaceStatus)
-                .map(this::serialize)
+                .map(s -> serialize(s, offlinePlayer))
                 .toArray(String[]::new);
     }
 
@@ -134,6 +134,26 @@ public abstract class BaseGui {
         SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
         if (skullMeta != null) {
             skullMeta.setOwningPlayer(owner);
+            skull.setItemMeta(skullMeta);
+        }
+        return skull;
+    }
+
+    protected ItemStack createPlayerSkullWithLore(OfflinePlayer owner, String[] textArray) {
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
+
+        if (skullMeta != null && textArray != null && textArray.length > 0) {
+            skullMeta.setOwningPlayer(owner);
+
+            // set the first string as the Title
+            skullMeta.setDisplayName(textArray[0]);
+
+            // set the rest of the strings as the Lore
+            if (textArray.length > 1) {
+                skullMeta.setLore(java.util.Arrays.asList(textArray).subList(1, textArray.length));
+            }
+
             skull.setItemMeta(skullMeta);
         }
         return skull;

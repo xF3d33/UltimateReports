@@ -20,6 +20,10 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 public class DiscordBot {
@@ -29,7 +33,10 @@ public class DiscordBot {
     private final DiscordBotSender embedSender;
 
     @Getter
-    private JDA jda;
+    private volatile JDA jda;
+
+    private final CompletableFuture<Void> startFuture = new CompletableFuture<>();
+    private volatile boolean shuttingDown = false;
 
     public DiscordBot(@NotNull UltimateReports plugin) {
         this.plugin = plugin;
@@ -41,6 +48,10 @@ public class DiscordBot {
     private void start() {
         plugin.runAsync(task -> {
             try {
+                if (isShuttingDown()) {
+                    return;
+                }
+
                 this.jda = JDABuilder.createLight(plugin.getSettings().getDiscord().getBot().getToken(), Collections.emptyList())
                         .setMemberCachePolicy(MemberCachePolicy.NONE)
                         .setChunkingFilter(ChunkingFilter.NONE)
@@ -61,7 +72,17 @@ public class DiscordBot {
                         .addEventListeners(new ModalListener(plugin))
                         .build();
 
+                if (isShuttingDown()) {
+                    shutdownJda();
+                    return;
+                }
+
                 jda.awaitReady();
+
+                if (isShuttingDown()) {
+                    shutdownJda();
+                    return;
+                }
 
                 Guild guild = jda.getGuildById(plugin.getSettings().getDiscord().getBot().getGuildId());
                 if (guild == null) {
@@ -90,12 +111,42 @@ public class DiscordBot {
                 );
 
                 plugin.log(Level.INFO, "Discord Bot started");
-            } catch (InterruptedException e) {
+            } catch (Throwable e) {
+                if (!isShuttingDown()) {
 
-                plugin.log(Level.SEVERE, "Error while starting the Discord bot", e);
+                    plugin.log(Level.SEVERE, "Error while starting the Discord bot", e);
+                }
+            } finally {
+                startFuture.complete(null);
             }
 
         });
 
+    }
+
+    public void shutdown() {
+        shuttingDown = true;
+
+        try {
+            startFuture.get(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException | TimeoutException ignored) {
+        }
+
+        shutdownJda();
+    }
+
+    private boolean isShuttingDown() {
+        return shuttingDown || !plugin.isEnabled();
+    }
+
+    private void shutdownJda() {
+        if (jda != null) {
+            try {
+                jda.shutdownNow();
+            } catch (Throwable ignored) {
+            }
+        }
     }
 }

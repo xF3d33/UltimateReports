@@ -1,5 +1,7 @@
 UltimateReports is a light-weight player reports plugin for Minecraft servers, with cross-server and Discord support, developed with optimization in mind!
 
+**Compatible with Paper 1.21.11 and 26.1+** (note that Paper 26.x requires Java 25 on the server)
+
 <br>&nbsp;<br>
 
 <img     src="https://cdn.modrinth.com/data/cached_images/be59361ea48c350f68566f613ed176c19c266504.png"  alt="Image Description" width="WIDTH">

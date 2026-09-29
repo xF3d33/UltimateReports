@@ -207,6 +207,10 @@ public final class UltimateReports extends JavaPlugin implements TaskRunner, Gso
 
     @Override
     public void onDisable() {
+        if (discordBot != null) {
+            discordBot.shutdown();
+        }
+
         // Cancel plugin tasks and close the database connection
         getScheduler().cancelAllTasks();
         database.close();

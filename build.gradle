@@ -1,12 +1,12 @@
 plugins {
     id 'java'
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("xyz.jpenilla.run-paper") version "3.1.0"
     id 'maven-publish'
-    id "com.gradleup.shadow" version "9.2.2"
+    id "com.gradleup.shadow" version "9.6.1"
 }
 
 group = 'dev.xf3d3'
-version = '1.1'
+version = '1.2'
 
 repositories {
     mavenCentral()
@@ -29,14 +29,14 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("com.viaversion:viaversion-api:5.5.1")
     implementation("org.bstats:bstats-bukkit:3.1.0")
     implementation("de.themoep:inventorygui:1.6.6-SNAPSHOT")
     implementation("com.tcoded:FoliaLib:0.5.1")
-    implementation("de.themoep:minedown-adventure:1.7.5")
+    implementation("de.themoep:minedown-adventure:1.7.6-SNAPSHOT")
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
 
     compileOnly("net.dv8tion:JDA:6.1.1")
@@ -59,7 +59,7 @@ dependencies {
 
 tasks {
     runServer {
-        minecraftVersion("1.21")
+        minecraftVersion("26.2")
     }
 
     build {
